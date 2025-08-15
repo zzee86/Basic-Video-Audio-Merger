@@ -1,12 +1,13 @@
-﻿using Video_Audio_Merger;
+﻿using System.Diagnostics;
+using Video_Audio_Merger;
 class Program
 {
-    static void Main()
+    static void Main(string[] args)
     {
         do
         {
             var videoMerger = new VideoMerger();
-            videoMerger.MergeFiles();
+            videoMerger.MergeFiles(args);
 
             Console.WriteLine("Press 'R' to merge another file or any other key to exit...");
             char key = Console.ReadKey().KeyChar;

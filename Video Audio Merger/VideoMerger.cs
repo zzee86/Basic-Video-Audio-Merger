@@ -3,10 +3,18 @@
 namespace Video_Audio_Merger;
 public class VideoMerger
 {
-    public void MergeFiles()
+    public void MergeFiles(string[] args)
     {
         Console.WriteLine("Enter path to video file:");
-        string mainFile = Console.ReadLine()?.Trim('"');
+
+        string mainFile = "";
+        if (args != null && args.Length >= 1)
+        {
+            mainFile = args[0];
+            Console.WriteLine(mainFile);
+        }
+        else
+            mainFile = Console.ReadLine()?.Trim('"');
 
         if (string.IsNullOrWhiteSpace(mainFile) || !File.Exists(mainFile))
         {
@@ -15,15 +23,28 @@ public class VideoMerger
         }
 
         Console.WriteLine("Enter paths to audio tracks, separated by commas:");
-        string audioInput = Console.ReadLine();
-        string[] audioFiles = audioInput.Split(',', StringSplitOptions.RemoveEmptyEntries)
-                                       .Select(a => a.Trim('"', ' ')).ToArray();
+        string audioInput = "";
+        if (args != null && args.Length > 1)
+        {
+            for(int i = 1; i < args.Length; i++)
+            {
+                audioInput += args[i] + ",";
+            }
+            audioInput = audioInput.TrimEnd(',');
 
-        if (audioFiles.Length == 0)
+            Console.WriteLine(audioInput);
+        }
+        else
+            audioInput = Console.ReadLine();
+
+        if (string.IsNullOrEmpty(audioInput) || audioInput.Length == 0)
         {
             Console.WriteLine("Error: You must provide at least one valid audio file!");
             return;
         }
+
+        string[] audioFiles = audioInput.Split(',', StringSplitOptions.RemoveEmptyEntries)
+                                       .Select(a => a.Trim('"', ' ')).ToArray();
 
         var outputDir = Path.GetDirectoryName(mainFile) ?? Environment.CurrentDirectory;
         var nameWithoutExt = Path.GetFileNameWithoutExtension(mainFile);
