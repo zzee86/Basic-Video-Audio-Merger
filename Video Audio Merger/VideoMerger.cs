@@ -1,10 +1,11 @@
-﻿using System.Diagnostics;
-
-namespace Video_Audio_Merger;
+﻿namespace Video_Audio_Merger;
 public class VideoMerger
 {
     public void MergeFiles(string[] args)
     {
+        Console.WriteLine();
+        Console.WriteLine("===== Merging Video + Audio Tracks =====");
+        Console.WriteLine();
         Console.WriteLine("Enter path to video file:");
 
         string mainFile = "";
@@ -68,22 +69,20 @@ public class VideoMerger
         filter += $"amerge=inputs={totalAudioStreams}[aout]";
 
         // only shows errors in the output
-        var arguments = $"{inputs}-filter_complex \"{filter}\" -map 0:v -map [aout] -c:v copy -ac 2 \"{outputFile}\" -hide_banner -loglevel error";
+        var query = $"{inputs}-filter_complex \"{filter}\" -map 0:v -map [aout] -c:v copy -ac 2 \"{outputFile}\" -hide_banner -loglevel warning";
 
-        RunFFmpeg(arguments);
+        var helper = new Helper();
+        helper.RunFFmpeg(query);
         Console.WriteLine($"File saved to: {outputFile}");
-    }
-    private void RunFFmpeg(string args)
-    {
-        Process ffmpeg = new Process();
-        ffmpeg.StartInfo.FileName = "ffmpeg";
-        ffmpeg.StartInfo.Arguments = args;
-        ffmpeg.StartInfo.RedirectStandardError = true;
-        ffmpeg.StartInfo.UseShellExecute = false;
-        ffmpeg.StartInfo.CreateNoWindow = true;
 
-        ffmpeg.Start();
-        Console.WriteLine(ffmpeg.StandardError.ReadToEnd());
-        ffmpeg.WaitForExit();
+        Console.WriteLine();
+        Console.WriteLine("Press '1 convert to mp4 or any other key to return to main menu");
+        char key = Console.ReadKey().KeyChar;
+        Console.WriteLine();
+        if (key == '1')
+        {
+            var videoConverter = new VideoConverter();
+            videoConverter.ConvertVideo(new String[] { outputFile });
+        }
     }
 }
