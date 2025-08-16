@@ -1,4 +1,5 @@
-﻿using System.Diagnostics;
+﻿using Microsoft.VisualBasic.FileIO;
+using System.Diagnostics;
 
 namespace Video_Audio_Merger;
 public class VideoConverter
@@ -22,12 +23,6 @@ public class VideoConverter
         else
             mainFile = Console.ReadLine()?.Trim('"');
 
-        if (string.IsNullOrWhiteSpace(mainFile) || !File.Exists(mainFile))
-        {
-            Console.WriteLine("Error: Video file not found!");
-            return;
-        }
-
         mainFile = mainFile.TrimEnd(',');
 
         string[] videoFiles = mainFile.Split(',', StringSplitOptions.RemoveEmptyEntries)
@@ -36,6 +31,14 @@ public class VideoConverter
         var helper = new Helper();
         var dict = new HashSet<string>();
 
+        Console.WriteLine($"\nDelete original file after conversion? [Y/N]");
+        var key = Console.ReadKey().Key;
+
+
+        Console.WriteLine($"\nOverwrite existing files? [Y/N]");
+        var overwrite = Console.ReadKey().Key;
+
+        var count = 0;
         foreach (var inputFile in videoFiles)
         {
             if (!File.Exists(inputFile))
@@ -50,13 +53,14 @@ public class VideoConverter
             var outputFile = Path.Combine(outputDir, $"{nameWithoutExt}_converted.mp4");
 
             var finalOutput = "";
-            Console.WriteLine($"Delete original file after conversion? [Y/N]");
-            var key = Console.ReadKey().Key;
             if (key == ConsoleKey.Y)
                 finalOutput = Path.Combine(outputDir, $"{nameWithoutExt}.mp4");
 
-
-            string query = $"-i \"{inputFile}\" -c:v h264_amf -quality quality -b:v 0 -pix_fmt yuv420p -c:a aac -b:a 128k \"{outputFile}\" -hide_banner -loglevel warning";
+            string query = "";
+            if (overwrite == ConsoleKey.Y)
+                query = $"-i \"{inputFile}\" -c:v h264_amf -quality quality -b:v 0 -pix_fmt yuv420p -c:a aac -b:a 128k -y \"{outputFile}\"";
+            else
+                query = $"-i \"{inputFile}\" -c:v h264_amf -quality quality -b:v 0 -pix_fmt yuv420p -c:a aac -b:a 128k -n \"{outputFile}\"";
 
             helper.RunFFmpeg(query);
 
@@ -67,8 +71,19 @@ public class VideoConverter
                 {
                     try
                     {
-                        File.Delete(inputFile);
+                        var creationTime = File.GetCreationTime(inputFile);
+                        var lastWriteTime = File.GetLastWriteTime(inputFile);
+                        var lastAccessTime = File.GetLastAccessTime(inputFile);
+
+                        FileSystem.DeleteFile(inputFile, UIOption.OnlyErrorDialogs, RecycleOption.SendToRecycleBin);
+
                         File.Move(outputFile, finalOutput);
+
+                        // Preserve timestamps on the new file
+                        File.SetCreationTime(finalOutput, creationTime);
+                        File.SetLastWriteTime(finalOutput, lastWriteTime);
+                        File.SetLastAccessTime(finalOutput, lastAccessTime);
+
                         Console.WriteLine($"Original file deleted, converted file saved to: {finalOutput}");
                     }
                     catch (Exception ex)
@@ -77,7 +92,13 @@ public class VideoConverter
                     }
                 }
                 else
+                {
                     Console.WriteLine($"Original file kept, converted file saved to: {outputFile}");
+                }
+
+                count++;
+                Console.WriteLine();
+                Console.WriteLine($"===== Converted {count}/{videoFiles.Length} Videos =====");
             }
             else
             {
