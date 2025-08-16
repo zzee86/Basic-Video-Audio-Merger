@@ -1,4 +1,6 @@
-﻿namespace Video_Audio_Merger;
+﻿using System.Diagnostics;
+
+namespace Video_Audio_Merger;
 public class VideoMerger
 {
     public void MergeFiles(string[] args)
@@ -6,7 +8,7 @@ public class VideoMerger
         Console.WriteLine();
         Console.WriteLine("===== Merging Video + Audio Tracks =====");
         Console.WriteLine();
-        Console.WriteLine("Enter path to video file:");
+        Console.WriteLine("Enter path to a video file:");
 
         string mainFile = "";
         if (args != null && args.Length >= 1)
@@ -27,7 +29,7 @@ public class VideoMerger
         string audioInput = "";
         if (args != null && args.Length > 1)
         {
-            for(int i = 1; i < args.Length; i++)
+            for (int i = 1; i < args.Length; i++)
             {
                 audioInput += args[i] + ",";
             }
@@ -74,6 +76,13 @@ public class VideoMerger
         var helper = new Helper();
         helper.RunFFmpeg(query);
         Console.WriteLine($"File saved to: {outputFile}");
+
+        Console.WriteLine($"Play video? [Y/N]");
+        var playVideo = Console.ReadKey().Key;
+        if (playVideo == ConsoleKey.Y)
+        {
+            Process.Start("explorer.exe", outputFile);
+        }
 
         Console.WriteLine();
         Console.WriteLine("Press '1 convert to mp4 or any other key to return to main menu");
